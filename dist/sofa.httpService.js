@@ -1,12 +1,12 @@
 /**
- * sofa-http-service - v0.1.0 - 2014-03-24
+ * sofa-http-service - v0.2.0 - 2014-03-26
  * http://www.sofa.io
  *
  * Copyright (c) 2013 CouchCommerce GmbH (http://www.couchcommerce.org) and other contributors
  * THIS SOFTWARE CONTAINS COMPONENTS OF THE SOFA SDK (SOFA.IO).
  * IT IS PROVIDED UNDER THE LICENSE TERMS OF THE ATTACHED LICENSE.TXT.
  */
-;(function (sofa, undefined) {
+;(function (sofa, window, undefined) {
 
 'use strict';
 /* global sofa */
@@ -21,6 +21,8 @@ sofa.define('sofa.HttpService', function ($q) {
             'Content-Type': 'application/json;charset=utf-8'
         },
         ABORTED = -1;
+
+    var rawDocument = window.document;
 
     function encodeUriQuery(val, pctEncodeSpaces) {
         return encodeURIComponent(val)
@@ -264,6 +266,10 @@ sofa.define('sofa.HttpService', function ($q) {
     };
 
     httpService.pendingRequests = [];
+    httpService.callbacks = {
+        counter: 0
+    };
+    httpService.defaults = defaults;
 
     function sortedKeys(obj) {
         var keys = [];
@@ -377,73 +383,117 @@ sofa.define('sofa.HttpService', function ($q) {
     }
 
     function doActualRequest(method, url, post, callback, headers, timeout, withCredentials, responseType) {
+
         var status;
         url = url;
-        var xhr = createXhr(method);
+        var callbacks = httpService.callbacks;
 
-        xhr.open(method, url, true);
-        forEach(headers, function (value, key) {
-            if (isDefined(value)) {
-                xhr.setRequestHeader(key, value);
-            }
-        });
+        if (lowercase(method) === 'jsonp') {
+            var callbackId = '_' + (callbacks.counter++).toString(36);
+            callbacks[callbackId] = function (data) {
+                callbacks[callbackId].data = data;
+            };
 
-        // In IE6 and 7, this might be called synchronously when xhr.send below is called and the
-        // response is in the cache. the promise api will ensure that to the app code the api is
-        // always async
-        xhr.onreadystatechange = function () {
-            // onreadystatechange might get called multiple times with readyState === 4 on mobile webkit caused by
-            // xhrs that are resolved while the app is in the background (see #5426).
-            // since calling completeRequest sets the `xhr` variable to null, we just check if it's not null before
-            // continuing
-            //
-            // we can't set xhr.onreadystatechange to undefined or delete it because that breaks IE8 (method=PATCH) and
-            // Safari respectively.
-            if (xhr && xhr.readyState === 4) {
-                var responseHeaders = null,
-                    response = null;
-
-                if (status !== ABORTED) {
-                    responseHeaders = xhr.getAllResponseHeaders();
-
-                    // responseText is the old-school way of retrieving response (supported by IE8 & 9)
-                    // response/responseType properties were introduced in XHR Level2 spec (supported by IE10)
-                    response = ('response' in xhr) ? xhr.response : xhr.responseText;
+            var jsonpDone = jsonpReq(url.replace('JSON_CALLBACK', 'sofa.callbacks.' + callbackId),  function () {
+                if (callbacks[callbackId].data) {
+                    completeRequest(callback, 200, callbacks[callbackId].data);
+                } else {
+                    completeRequest(callback, status || -2);
                 }
+                callbacks[callbackId] = function () {};
+            });
+        } else {
+            var xhr = createXhr(method);
 
-                completeRequest(callback,
-                    status || xhr.status,
-                    response,
-                    responseHeaders);
-            }
-        };
+            xhr.open(method, url, true);
+            forEach(headers, function (value, key) {
+                if (isDefined(value)) {
+                    xhr.setRequestHeader(key, value);
+                }
+            });
 
-        if (responseType) {
-            try {
-                xhr.responseType = responseType;
-            } catch (e) {
-                // WebKit added support for the json responseType value on 09/03/2013
-                // https://bugs.webkit.org/show_bug.cgi?id=73648. Versions of Safari prior to 7 are
-                // known to throw when setting the value "json" as the response type. Other older
-                // browsers implementing the responseType
+            // In IE6 and 7, this might be called synchronously when xhr.send below is called and the
+            // response is in the cache. the promise api will ensure that to the app code the api is
+            // always async
+            xhr.onreadystatechange = function () {
+                // onreadystatechange might get called multiple times with readyState === 4 on mobile webkit caused by
+                // xhrs that are resolved while the app is in the background (see #5426).
+                // since calling completeRequest sets the `xhr` variable to null, we just check if it's not null before
+                // continuing
                 //
-                // The json response type can be ignored if not supported, because JSON payloads are
-                // parsed on the client-side regardless.
-                if (responseType !== 'json') {
-                    throw e;
+                // we can't set xhr.onreadystatechange to undefined or delete it because that breaks IE8 (method=PATCH) and
+                // Safari respectively.
+                if (xhr && xhr.readyState === 4) {
+                    var responseHeaders = null,
+                        response = null;
+
+                    if (status !== ABORTED) {
+                        responseHeaders = xhr.getAllResponseHeaders();
+
+                        // responseText is the old-school way of retrieving response (supported by IE8 & 9)
+                        // response/responseType properties were introduced in XHR Level2 spec (supported by IE10)
+                        response = ('response' in xhr) ? xhr.response : xhr.responseText;
+                    }
+
+                    completeRequest(callback,
+                        status || xhr.status,
+                        response,
+                        responseHeaders);
+                }
+            };
+
+            if (responseType) {
+                try {
+                    xhr.responseType = responseType;
+                } catch (e) {
+                    // WebKit added support for the json responseType value on 09/03/2013
+                    // https://bugs.webkit.org/show_bug.cgi?id=73648. Versions of Safari prior to 7 are
+                    // known to throw when setting the value "json" as the response type. Other older
+                    // browsers implementing the responseType
+                    //
+                    // The json response type can be ignored if not supported, because JSON payloads are
+                    // parsed on the client-side regardless.
+                    if (responseType !== 'json') {
+                        throw e;
+                    }
                 }
             }
-        }
 
-        xhr.send(post || null);
+            xhr.send(post || null);
+        }
 
         function completeRequest(callback, status, response, headersString) {
 
+            jsonpDone = xhr = null;
             // fix status code when it is 0 (0 status is undocumented).
             // Occurs when accessing file resources.
             // On Android 4.1 stock browser it occurs while retrieving files from application cache.
             status = (status === 0) ? (response ? 200 : 404) : status;
             callback(status, response, headersString);
+        }
+
+        function jsonpReq(url, done) {
+            // we can't use jQuery/jqLite here because jQuery does crazy shit with script elements, e.g.:
+            // - fetches local scripts via XHR and evals them
+            // - adds and immediately removes script elements from the document
+            var script = rawDocument.createElement('script'),
+                doneWrapper = function () {
+                    script.onreadystatechange = script.onload = script.onerror = null;
+                    rawDocument.body.removeChild(script);
+                    if (done) {
+                        done();
+                    }
+                };
+
+            script.type = 'text/javascript';
+            script.src = url;
+
+            script.onload = script.onerror = function () {
+                doneWrapper();
+            };
+
+            rawDocument.body.appendChild(script);
+            return doneWrapper;
         }
     }
 
@@ -458,9 +508,9 @@ sofa.define('sofa.HttpService', function ($q) {
         });
     };
 
-    createShortMethods('get');
+    createShortMethods('get', 'jsonp');
 
     return httpService;
 });
 
-} (sofa));
+} (sofa, window));
