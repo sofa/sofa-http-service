@@ -498,7 +498,20 @@ sofa.define('sofa.HttpService', function ($q) {
         });
     };
 
+    var createShortMethodsWithData = function () {
+        forEach(arguments, function (name) {
+            httpService[name] = function (url, data, config) {
+                return httpService(extend(config || {}, {
+                    method: name,
+                    url: url,
+                    data: data
+                }));
+            };
+        });
+    };
+
     createShortMethods('get', 'jsonp');
+    createShortMethodsWithData('post');
 
     return httpService;
 });
