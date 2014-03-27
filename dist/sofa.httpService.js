@@ -1,5 +1,5 @@
 /**
- * sofa-http-service - v0.2.0 - 2014-03-26
+ * sofa-http-service - v0.3.0 - 2014-03-27
  * http://www.sofa.io
  *
  * Copyright (c) 2013 CouchCommerce GmbH (http://www.couchcommerce.org) and other contributors
@@ -508,7 +508,20 @@ sofa.define('sofa.HttpService', function ($q) {
         });
     };
 
+    var createShortMethodsWithData = function () {
+        forEach(arguments, function (name) {
+            httpService[name] = function (url, data, config) {
+                return httpService(extend(config || {}, {
+                    method: name,
+                    url: url,
+                    data: data
+                }));
+            };
+        });
+    };
+
     createShortMethods('get', 'jsonp');
+    createShortMethodsWithData('post');
 
     return httpService;
 });

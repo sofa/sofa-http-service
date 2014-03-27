@@ -1,6 +1,6 @@
 {
   "name": "sofa-http-service",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Sofa Web SDK http service component.",
   "main": "dist/sofa.httpService.js",
   "homepage": "http://www.sofa.io",
