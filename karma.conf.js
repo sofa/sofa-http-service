@@ -12,6 +12,7 @@ module.exports = function (karma) {
             'node_modules/sofa-core/dist/sofa.core.js',
             'src/**/*.js',
             'node_modules/sofa-testing/mocks/sofa.config.mock.js',
+            'node_modules/sofa-q-service/dist/sofa.qService.js',
             'test/**/*.spec.js'
         ],
         exclude: [],
