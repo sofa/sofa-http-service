@@ -1,3 +1,13 @@
+<a name="0.3.1"></a>
+### 0.3.1 (2014-04-16)
+
+
+#### Bug Fixes
+
+* **LICENSE:** fixes naming ([28e3c044](https://github.com/sofa/sofa-http-service/commit/28e3c044f9604ecc769929275c75d0bef5c21fe9))
+* **karma:** adds sofa-q-service to karma conf ([ee09491e](https://github.com/sofa/sofa-http-service/commit/ee09491e1de7bb246733a3b1eee08618e93f522b))
+
+
 <a name="0.3.0"></a>
 ## 0.3.0 (2014-03-27)
 
