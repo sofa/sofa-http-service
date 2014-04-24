@@ -2,6 +2,16 @@
 /* global sofa */
 /* global XMLHttpRequest */
 
+/**
+ * @sofadoc class
+ * @name sofa.HttpService
+ * @package sofa-http-service
+ * @requiresPackage sofa-q-service
+ * @requires sofa.QService
+ * @distFile dist/sofa.HttpService
+ *
+ * @description
+ */
 sofa.define('sofa.HttpService', function ($q) {
 
     var JSON_START = /^\s*(\[|\{[^\{])/,
