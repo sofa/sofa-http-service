@@ -1,3 +1,17 @@
+<a name="0.4.0"></a>
+## 0.4.0 (2014-06-24)
+
+
+#### Bug Fixes
+
+* **gitignore:** add bower_components ([cbf8eaf2](https://github.com/sofa/sofa-http-service/commit/cbf8eaf2bc3178d6b535ed9e4396c7e7a945df83))
+
+
+#### Features
+
+* **grunt:** better deploying ([4f515aab](https://github.com/sofa/sofa-http-service/commit/4f515aab0e09e154112ccdb1c6c6c92924306bb1))
+
+
 <a name="0.3.1"></a>
 ### 0.3.1 (2014-04-16)
 
