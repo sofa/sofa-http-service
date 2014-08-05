@@ -1,5 +1,5 @@
 /**
- * sofa-http-service - v0.4.0 - 2014-06-24
+ * sofa-http-service - v0.5.0 - 2014-08-05
  * http://www.sofa.io
  *
  * Copyright (c) 2014 CouchCommerce GmbH (http://www.couchcommerce.com / http://www.sofa.io) and other contributors
@@ -12,6 +12,16 @@
 /* global sofa */
 /* global XMLHttpRequest */
 
+/**
+ * @sofadoc class
+ * @name sofa.HttpService
+ * @package sofa-http-service
+ * @requiresPackage sofa-q-service
+ * @requires sofa.QService
+ * @distFile dist/sofa.HttpService
+ *
+ * @description
+ */
 sofa.define('sofa.HttpService', function ($q) {
 
     var JSON_START = /^\s*(\[|\{[^\{])/,
