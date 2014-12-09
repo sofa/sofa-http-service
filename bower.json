@@ -8,11 +8,11 @@
     "description": "Sofa Web SDK http service component.",
     "main": "dist/sofa.httpService.js",
     "dependencies": {
-        "sofa-core": "~0.6.x",
-        "sofa-q-service": "~0.1.x"
+        "sofa-core": "~0.13.x",
+        "sofa-q-service": "~0.3.x"
     },
     "devDependencies": {
-        "sofa-testing": "0.1.x"
+        "sofa-testing": "0.7.x"
     },
     "keywords": [
         "sofa",

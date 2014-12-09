@@ -28,8 +28,8 @@
         "url": "https://github.com/sofa/sofa-http-service/issues"
     },
     "dependencies": {
-        "sofa-core": "0.6.x",
-        "sofa-q-service": "~0.1.x"
+        "sofa-core": "0.13.x",
+        "sofa-q-service": "~0.3.x"
     },
     "devDependencies": {
         "grunt": "~0.4.3",
